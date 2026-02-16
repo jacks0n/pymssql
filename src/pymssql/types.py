@@ -11,7 +11,9 @@ by pymssql query methods.
     A row returned when ``as_dict=False`` (the default).
 
 ``DictRow``
-    A row returned when ``as_dict=True``.
+    A row returned when ``as_dict=True``. Keys are column names (strings)
+    because ``row2dict()`` in ``_pymssql`` filters out the integer-keyed
+    positional entries that ``_mssql`` internally adds.
 
 ``QueryParams``
     Accepted parameter types for query execution methods
@@ -21,11 +23,12 @@ by pymssql query methods.
 from collections.abc import Mapping
 from datetime import date, datetime, time
 from decimal import Decimal
+from typing import Union
 from uuid import UUID
 
-SqlValue = str | int | float | Decimal | bool | bytes | datetime | date | time | UUID | None
+SqlValue = Union[str, int, float, Decimal, bool, bytes, datetime, date, time, UUID, None]
 TupleRow = tuple[SqlValue, ...]
 DictRow = dict[str, SqlValue]
-QueryParams = SqlValue | tuple[SqlValue | tuple[SqlValue, ...], ...] | Mapping[str, SqlValue | tuple[SqlValue, ...]]
+QueryParams = Union[SqlValue, tuple[Union[SqlValue, tuple[SqlValue, ...]], ...], Mapping[str, Union[SqlValue, tuple[SqlValue, ...]]]]
 
 __all__ = ["SqlValue", "TupleRow", "DictRow", "QueryParams"]
