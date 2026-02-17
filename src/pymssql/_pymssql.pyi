@@ -11,11 +11,9 @@ from typing import Generic, Literal, overload
 from typing_extensions import TypeVar, override
 
 from . import _mssql
-from ._mssql import QueryParams as QueryParams, SqlValue as SqlValue, set_wait_callback as set_wait_callback
+from ._mssql import set_wait_callback as set_wait_callback
 from .exceptions import *
-
-TupleRow = tuple[SqlValue, ...]
-DictRow = dict[str, SqlValue]
+from .types import DictRow as DictRow, QueryParams as QueryParams, SqlValue as SqlValue, TupleRow as TupleRow
 
 _Row = TypeVar("_Row", default=TupleRow)
 
@@ -108,7 +106,9 @@ class Connection(Generic[_Row]):
     @overload
     def cursor(self, as_dict: Literal[True], arraysize: int | None = None) -> Cursor[DictRow]: ...
     @overload
-    def cursor(self, as_dict: Literal[False], arraysize: int | None = None) -> Cursor[TupleRow]:
+    def cursor(self, as_dict: Literal[False], arraysize: int | None = None) -> Cursor[TupleRow]: ...
+    @overload
+    def cursor(self, as_dict: bool = ..., arraysize: int | None = None) -> Cursor[TupleRow] | Cursor[DictRow]:
         """
         Return cursor object that can be used to make queries and fetch
         results from the database.
@@ -236,13 +236,14 @@ def connect(
 ) -> Connection[TupleRow]: ...
 @overload
 def connect(
-    server: str,
-    user: str | None,
-    password: str | None,
-    database: str,
-    timeout: int,
-    login_timeout: int,
-    charset: str,
+    server: str = ...,
+    user: str | None = ...,
+    password: str | None = ...,
+    database: str = ...,
+    timeout: int = ...,
+    login_timeout: int = ...,
+    charset: str = ...,
+    *,
     as_dict: Literal[True],
     host: str = ...,
     appname: str | None = ...,
@@ -264,8 +265,7 @@ def connect(
     timeout: int = ...,
     login_timeout: int = ...,
     charset: str = ...,
-    *,
-    as_dict: Literal[True],
+    as_dict: bool = ...,
     host: str = ...,
     appname: str | None = ...,
     port: str = ...,
@@ -276,7 +276,7 @@ def connect(
     tds_version: str | None = ...,
     use_datetime2: bool = ...,
     arraysize: int = ...,
-) -> Connection[DictRow]:
+) -> Connection[TupleRow] | Connection[DictRow]:
     """
     Constructor for creating a connection to the database. Returns a
     Connection object.
